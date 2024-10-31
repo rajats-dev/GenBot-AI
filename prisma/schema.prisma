@@ -10,17 +10,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model UserSchema {
-    tgId Int @unique
-    firstName String
-    lastName String
-    isBot Boolean
-    username String? @unique
-    promptTokens Int? 
-    completionTokens Int?
-    timestamps Boolean?
+model Post {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  text      String
+  author    UserSchema @relation(fields: [authorId], references: [tgId])
+  authorId  Int
 }
 
-
-
+model UserSchema {
+  tgId              Int       @unique
+  firstName         String
+  lastName          String
+  isBot             Boolean
+  username          String?   @unique
+  events            Post[]
+  promptTokens      Int?
+  completionTokens  Int?
+  timestamps        Boolean?
+}
 
