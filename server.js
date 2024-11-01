@@ -18,6 +18,7 @@ const openai = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
 });
+const port = process.env.PORT || 8000;
 let postOne = "";
 let postTwo = "";
 
@@ -205,7 +206,6 @@ bot.on(message("text"), async (ctx) => {
 });
 
 app.get("/", (req, res) => res.status(200).send("Bot is running"));
-const port = process.env.PORT || 8000;
 app.listen(port, () => console.log(`Listening at port ${port}`));
 
 bot.launch();
