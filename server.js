@@ -9,8 +9,6 @@ const twitterClient = new TwitterApi({
   appSecret: process.env.API_SECRET_KEY,
   accessToken: process.env.ACCESS_TOKEN,
   accessSecret: process.env.ACCESS_TOKEN_SECRET,
-  // clientId: process.env.ACCESS_CLIENT_ID,
-  // clientSecret: process.env.ACCESS_CLIENT_SECRET,
 });
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const prisma = new PrismaClient();
