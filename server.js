@@ -3,7 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { message } from "telegraf/filters";
 import OpenAI from "openai";
 import { TwitterApi } from "twitter-api-v2";
-import { express } from "express";
+import express from "express";
 
 const twitterClient = new TwitterApi({
   appKey: process.env.API_KEY,
@@ -204,12 +204,12 @@ bot.on(message("text"), async (ctx) => {
   }
 });
 
-app.get("/", (req, res) => res.send("Bot is running"));
+app.get("/", (req, res) => res.status(200).send("Bot is running"));
+const port = process.env.PORT || 8000;
+app.listen(port, () => console.log(`Listening at port ${port}`));
 
 bot.launch();
 
 // Enable graceful stop
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
-
-module.exports = app;
