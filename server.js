@@ -3,6 +3,7 @@ import { PrismaClient } from "@prisma/client";
 import { message } from "telegraf/filters";
 import OpenAI from "openai";
 import { TwitterApi } from "twitter-api-v2";
+import { express } from "express";
 
 const twitterClient = new TwitterApi({
   appKey: process.env.API_KEY,
@@ -10,6 +11,7 @@ const twitterClient = new TwitterApi({
   accessToken: process.env.ACCESS_TOKEN,
   accessSecret: process.env.ACCESS_TOKEN_SECRET,
 });
+const app = express();
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const prisma = new PrismaClient();
 const openai = new OpenAI({
@@ -18,6 +20,10 @@ const openai = new OpenAI({
 });
 let postOne = "";
 let postTwo = "";
+
+app.use(bot.webhookCallback("/webhook"));
+const botWebhookUrl = `${process.env.VERCEL_URL}/webhook`; // VERCEL_URL is auto-set by Vercel
+bot.telegram.setWebhook(botWebhookUrl);
 
 bot.start(async (ctx) => {
   const from = ctx.update.message.from;
@@ -198,8 +204,12 @@ bot.on(message("text"), async (ctx) => {
   }
 });
 
+app.get("/", (req, res) => res.send("Bot is running"));
+
 bot.launch();
 
 // Enable graceful stop
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
+
+module.exports = app;
