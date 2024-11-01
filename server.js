@@ -22,9 +22,9 @@ const port = process.env.PORT || 8000;
 let postOne = "";
 let postTwo = "";
 
-app.use(bot.webhookCallback("/webhook"));
-const botWebhookUrl = `${process.env.VERCEL_URL}/webhook`; // VERCEL_URL is auto-set by Vercel
-bot.telegram.setWebhook(botWebhookUrl);
+// app.use(bot.webhookCallback("/webhook"));
+// const botWebhookUrl = `${process.env.VERCEL_URL}/webhook`; // VERCEL_URL is auto-set by Vercel
+// bot.telegram.setWebhook(botWebhookUrl);
 
 bot.start(async (ctx) => {
   const from = ctx.update.message.from;
