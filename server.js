@@ -2,13 +2,24 @@ import { Telegraf } from "telegraf";
 import { PrismaClient } from "@prisma/client";
 import { message } from "telegraf/filters";
 import OpenAI from "openai";
+import { TwitterApi } from "twitter-api-v2";
 
+const twitterClient = new TwitterApi({
+  appKey: process.env.API_KEY,
+  appSecret: process.env.API_SECRET_KEY,
+  accessToken: process.env.ACCESS_TOKEN,
+  accessSecret: process.env.ACCESS_TOKEN_SECRET,
+  // clientId: process.env.ACCESS_CLIENT_ID,
+  // clientSecret: process.env.ACCESS_CLIENT_SECRET,
+});
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const prisma = new PrismaClient();
 const openai = new OpenAI({
   apiKey: process.env.GROQ_API_KEY,
   baseURL: "https://api.groq.com/openai/v1",
 });
+let postOne = "";
+let postTwo = "";
 
 bot.start(async (ctx) => {
   const from = ctx.update.message.from;
@@ -106,16 +117,61 @@ bot.command("generate", async (ctx) => {
       },
     });
 
+    postOne = chatCompletion.choices[0].message.content
+      .match(/\*\*Post 1\*\*\n([\s\S]*?)\n\*\*Post 2\*\*/)[1]
+      .trim();
+    postTwo = chatCompletion.choices[0].message.content
+      .match(/\*\*Post 2\*\*\n([\s\S]*)/)[1]
+      .trim();
+
     await ctx.deleteMessage(waitingID);
-    await ctx.reply(chatCompletion.choices[0].message.content);
+    if (postOne && postTwo) {
+      await ctx.reply(
+        `Here are two Twitter-sized posts:\n  1. ${postOne}  \n  2. ${postTwo}`
+      );
+      console.log(postOne, postTwo);
+    } else {
+      await ctx.reply("Couldn't generate");
+    }
   } catch (error) {
     console.log(error);
     console.log("Facing difficulties");
   }
 });
 
+bot.command("post1", async (ctx) => {
+  try {
+    await twitterClient.v2.tweet(postOne);
+    ctx.reply("Your tweet was posted successfully!");
+  } catch (error) {
+    console.error("Error posting tweet:", error);
+    ctx.reply("Sorry, there was an error posting your tweet.");
+  }
+});
+
+bot.command("post2", async (ctx) => {
+  try {
+    await twitterClient.v2.tweet(postTwo);
+    ctx.reply("Your tweet was posted successfully!");
+  } catch (error) {
+    console.error("Error posting tweet:", error);
+    ctx.reply("Sorry, there was an error posting your tweet.");
+  }
+});
+
 bot.command("help", async (ctx) => {
   await ctx.reply("For support contact @rajat_sundriyal");
+});
+
+bot.hashtag("tweet", async (ctx) => {
+  const message = ctx.update.message.text;
+  try {
+    await twitterClient.v2.tweet(message);
+    ctx.reply("Your tweet was posted successfully!");
+  } catch (error) {
+    console.error("Error posting tweet:", error);
+    ctx.reply("Sorry, there was an error posting your tweet.");
+  }
 });
 
 bot.on(message("text"), async (ctx) => {
