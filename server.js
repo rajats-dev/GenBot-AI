@@ -4,6 +4,7 @@ import { message } from "telegraf/filters";
 import OpenAI from "openai";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
+import axios from "axios";
 
 const twitterClient = new TwitterApi({
   appKey: process.env.API_KEY,
@@ -30,6 +31,7 @@ bot.start(async (ctx) => {
   const from = ctx.update.message.from;
 
   try {
+    await axios.get("https://genbot-ai.onrender.com"); // Ping the server's own URL
     await prisma.userSchema.upsert({
       where: {
         tgId: from.id,
