@@ -23,9 +23,9 @@ const port = process.env.PORT || 8000;
 let postOne = "";
 let postTwo = "";
 
-// app.use(bot.webhookCallback("/webhook"));
-// const botWebhookUrl = `${process.env.VERCEL_URL}/webhook`; // VERCEL_URL is auto-set by Vercel
-// bot.telegram.setWebhook(botWebhookUrl);
+app.use(bot.webhookCallback("/webhook"));
+const botWebhookUrl = `${process.env.RENDER_URL}/webhook`;
+bot.telegram.setWebhook(botWebhookUrl);
 
 bot.start(async (ctx) => {
   const from = ctx.update.message.from;
@@ -210,7 +210,7 @@ bot.on(message("text"), async (ctx) => {
 app.get("/", (req, res) => res.status(200).send("Bot is running"));
 app.listen(port, () => console.log(`Listening at port ${port}`));
 
-bot.launch();
+// bot.launch();
 
 // Enable graceful stop
 process.once("SIGINT", () => bot.stop("SIGINT"));
