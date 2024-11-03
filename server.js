@@ -4,7 +4,6 @@ import { message } from "telegraf/filters";
 import OpenAI from "openai";
 import { TwitterApi } from "twitter-api-v2";
 import express from "express";
-import axios from "axios";
 
 const twitterClient = new TwitterApi({
   appKey: process.env.API_KEY,
@@ -23,15 +22,21 @@ const port = process.env.PORT || 8000;
 let postOne = "";
 let postTwo = "";
 
-app.use(bot.webhookCallback("/webhook"));
-const botWebhookUrl = `${process.env.RENDER_URL}/webhook`;
-bot.telegram.setWebhook(botWebhookUrl);
+if (process.env.NODE_ENV === "production") {
+  // Production environment: set webhook
+  const botWebhookUrl = `${process.env.RENDER_URL}`;
+  app.use(await bot.createWebhook({ domain: botWebhookUrl }));
+  console.log("Webhook set at:", `${process.env.RENDER_URL}`);
+} else {
+  // Development environment: use long polling
+  console.log("Bot running in long-polling mode");
+  bot.launch();
+}
 
 bot.start(async (ctx) => {
   const from = ctx.update.message.from;
 
   try {
-    await axios.get("https://genbot-ai.onrender.com"); // Ping the server's own URL
     await prisma.userSchema.upsert({
       where: {
         tgId: from.id,
@@ -90,8 +95,6 @@ bot.command("generate", async (ctx) => {
     return;
   }
 
-  // console.log("Posts created within the day:", posts);
-
   try {
     const chatCompletion = await openai.chat.completions.create({
       messages: [
@@ -111,8 +114,6 @@ bot.command("generate", async (ctx) => {
       ],
       model: "llama3-8b-8192",
     });
-
-    // console.log(chatCompletion);
 
     await prisma.userSchema.update({
       where: {
@@ -209,8 +210,6 @@ bot.on(message("text"), async (ctx) => {
 
 app.get("/", (req, res) => res.status(200).send("Bot is running"));
 app.listen(port, () => console.log(`Listening at port ${port}`));
-
-// bot.launch();
 
 // Enable graceful stop
 process.once("SIGINT", () => bot.stop("SIGINT"));
